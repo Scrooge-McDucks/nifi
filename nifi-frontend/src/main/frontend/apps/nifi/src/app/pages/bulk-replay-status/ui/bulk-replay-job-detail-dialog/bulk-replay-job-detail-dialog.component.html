@@ -1,0 +1,161 @@
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<h2 mat-dialog-title>Bulk Replay Job — {{ jobShortId }}</h2>
+
+<mat-dialog-content>
+    <!-- Summary -->
+    <div class="dialog-section">
+        <div class="flex flex-col gap-y-1">
+            <div class="flex gap-x-4">
+                <span class="label-text">Status:</span>
+                <span class="status-badge status-{{ job.status }}">{{ job.status }}</span>
+            </div>
+            <div class="flex gap-x-4">
+                <span class="label-text">Component:</span>
+                <span class="tertiary-color font-medium">{{ job.componentName }}</span>
+            </div>
+            <div class="flex gap-x-4">
+                <span class="label-text">Submitted By:</span>
+                <span class="tertiary-color font-medium">{{ job.submittedBy }}</span>
+            </div>
+            <div class="flex gap-x-4">
+                <span class="label-text">Submitted:</span>
+                <span class="tertiary-color font-medium">{{ job.submittedTime | date: 'medium' }}</span>
+            </div>
+            <div class="flex gap-x-4">
+                <span class="label-text">Events:</span>
+                <span>
+                    <span class="count-replayed">{{ job.replayedCount }} replayed</span>
+                    @if (job.failedCount > 0) {
+                        <span class="count-failed"> / {{ job.failedCount }} failed</span>
+                    }
+                    @if (job.pendingCount > 0) {
+                        <span class="tertiary-color"> / {{ job.pendingCount }} pending</span>
+                    }
+                    <span class="tertiary-color"> of {{ job.totalEvents }} total</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress (active jobs only) -->
+    @if (job.status === 'RUNNING') {
+        <div class="dialog-section flex flex-col gap-y-1 mt-2">
+            <div class="tertiary-color font-medium">
+                Progress: {{ job.replayedCount + job.failedCount }} of {{ job.totalEvents }} events processed
+            </div>
+            <mat-progress-bar mode="determinate" [value]="job.percentCompleted"></mat-progress-bar>
+            <div class="tertiary-color font-medium">{{ job.percentCompleted }}%</div>
+        </div>
+    } @else if (job.status === 'QUEUED') {
+        <div class="dialog-section flex flex-col gap-y-1 mt-2">
+            <div class="tertiary-color font-medium">Waiting to start...</div>
+            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        </div>
+    }
+
+    <!-- Query Criteria -->
+    <div class="dialog-section mt-4">
+        <h4 class="primary-color mb-2">Query Criteria</h4>
+        <div class="flex flex-col gap-y-1">
+            @if (job.queryCriteria.componentName) {
+                <div class="flex gap-x-4">
+                    <span class="label-text">Component:</span>
+                    <span class="tertiary-color font-medium">{{ job.queryCriteria.componentName }}</span>
+                </div>
+            }
+            @if (job.queryCriteria.startDate) {
+                <div class="flex gap-x-4">
+                    <span class="label-text">From:</span>
+                    <span class="tertiary-color font-medium">{{ job.queryCriteria.startDate | date: 'medium' }}</span>
+                </div>
+            }
+            @if (job.queryCriteria.endDate) {
+                <div class="flex gap-x-4">
+                    <span class="label-text">To:</span>
+                    <span class="tertiary-color font-medium">{{ job.queryCriteria.endDate | date: 'medium' }}</span>
+                </div>
+            }
+            @if (job.queryCriteria.searchTerms) {
+                @for (term of job.queryCriteria.searchTerms | keyvalue; track term.key) {
+                    <div class="flex gap-x-4">
+                        <span class="label-text">{{ term.key }}:</span>
+                        <span class="tertiary-color font-medium">{{ term.value.value }}</span>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Event Results Table -->
+    <div class="dialog-section mt-4">
+        <h4 class="primary-color mb-2">Event Results</h4>
+        <div class="event-results-table">
+            <table mat-table [dataSource]="eventResultsDataSource">
+                <ng-container matColumnDef="eventId">
+                    <th mat-header-cell *matHeaderCellDef>Event ID</th>
+                    <td mat-cell *matCellDef="let result">{{ result.eventId }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="flowFileUuid">
+                    <th mat-header-cell *matHeaderCellDef>FlowFile UUID</th>
+                    <td mat-cell *matCellDef="let result">
+                        <span class="uuid-cell" [title]="result.flowFileUuid">{{ result.flowFileUuid }}</span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="eventType">
+                    <th mat-header-cell *matHeaderCellDef>Type</th>
+                    <td mat-cell *matCellDef="let result">{{ result.eventType }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="eventTime">
+                    <th mat-header-cell *matHeaderCellDef>Event Time</th>
+                    <td mat-cell *matCellDef="let result">{{ result.eventTime | date: 'short' }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef>Status</th>
+                    <td mat-cell *matCellDef="let result">
+                        <span class="event-status status-{{ result.status }}">{{ result.status }}</span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="failureReason">
+                    <th mat-header-cell *matHeaderCellDef>Failure Reason</th>
+                    <td mat-cell *matCellDef="let result">
+                        @if (result.failureReason) {
+                            <span class="count-failed" [title]="result.failureReason">{{ result.failureReason }}</span>
+                        }
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="eventResultColumns; sticky: true"></tr>
+                <tr
+                    mat-row
+                    *matRowDef="let row; columns: eventResultColumns"
+                    [class.failed-row]="isFailed(row)"></tr>
+            </table>
+        </div>
+        <mat-paginator [pageSize]="20" [pageSizeOptions]="[20, 50]" [showFirstLastButtons]="true"></mat-paginator>
+    </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>

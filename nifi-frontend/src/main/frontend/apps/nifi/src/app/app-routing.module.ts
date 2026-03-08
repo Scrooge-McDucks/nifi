@@ -61,6 +61,14 @@ const routes: Routes = [
         loadChildren: () => import('./pages/provenance/feature/provenance.module').then((m) => m.ProvenanceModule)
     },
     {
+        path: 'bulk-replay-status',
+        canMatch: [authenticationGuard],
+        loadChildren: () =>
+            import('./pages/bulk-replay-status/feature/bulk-replay-status.module').then(
+                (m) => m.BulkReplayStatusModule
+            )
+    },
+    {
         path: 'parameter-contexts',
         canMatch: [authenticationGuard],
         loadChildren: () =>

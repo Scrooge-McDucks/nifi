@@ -1,0 +1,170 @@
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<div class="bulk-replay-job-table flex flex-col h-full">
+    <div class="flex flex-col">
+        <form [formGroup]="filterForm" class="my-2">
+            <div class="flex">
+                <div class="mr-2">
+                    <mat-form-field subscriptSizing="dynamic">
+                        <mat-label>Filter</mat-label>
+                        <input matInput type="text" class="small" formControlName="filterTerm" />
+                    </mat-form-field>
+                </div>
+                <div>
+                    <mat-form-field subscriptSizing="dynamic">
+                        <mat-label>Filter By</mat-label>
+                        <mat-select formControlName="filterColumn">
+                            @for (option of filterColumnOptions; track option) {
+                                <mat-option [value]="option">{{ option }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </div>
+        </form>
+        <div class="tertiary-color font-medium my-2">Filter matched {{ filteredCount }} of {{ totalCount }}</div>
+    </div>
+
+    <div class="flex-1 min-h-0 overflow-y-auto">
+        <div class="listing-table">
+            <table
+                mat-table
+                [dataSource]="dataSource"
+                matSort
+                matSortDisableClear
+                (matSortChange)="updateSort($event)"
+                [matSortActive]="sort.active"
+                [matSortDirection]="sort.direction">
+                <!-- Submitted Time -->
+                <ng-container matColumnDef="submittedTime">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Submitted</th>
+                    <td mat-cell *matCellDef="let job">{{ job.submittedTime | date: 'medium' }}</td>
+                </ng-container>
+
+                <!-- Submitted By -->
+                <ng-container matColumnDef="submittedBy">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Submitted By</th>
+                    <td mat-cell *matCellDef="let job">{{ job.submittedBy }}</td>
+                </ng-container>
+
+                <!-- Component Name -->
+                <ng-container matColumnDef="componentName">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Component</th>
+                    <td mat-cell *matCellDef="let job">{{ job.componentName }}</td>
+                </ng-container>
+
+                <!-- Status -->
+                <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+                    <td mat-cell *matCellDef="let job">
+                        <span class="status-badge status-{{ job.status }}">{{ job.status }}</span>
+                    </td>
+                </ng-container>
+
+                <!-- Progress -->
+                <ng-container matColumnDef="progress">
+                    <th mat-header-cell *matHeaderCellDef>Progress</th>
+                    <td mat-cell *matCellDef="let job">
+                        @if (job.status === 'RUNNING') {
+                            <div class="flex flex-col gap-y-1" style="min-width: 120px;">
+                                <mat-progress-bar mode="determinate" [value]="job.percentCompleted"></mat-progress-bar>
+                                <span class="tertiary-color font-medium text-xs">{{ job.percentCompleted }}%</span>
+                            </div>
+                        } @else if (job.status === 'QUEUED') {
+                            <div class="flex flex-col gap-y-1" style="min-width: 120px;">
+                                <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+                                <span class="tertiary-color font-medium text-xs">Queued</span>
+                            </div>
+                        }
+                    </td>
+                </ng-container>
+
+                <!-- Total Events -->
+                <ng-container matColumnDef="totalEvents">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Total</th>
+                    <td mat-cell *matCellDef="let job">{{ job.totalEvents }}</td>
+                </ng-container>
+
+                <!-- Replayed Count -->
+                <ng-container matColumnDef="replayedCount">
+                    <th mat-header-cell *matHeaderCellDef>Replayed</th>
+                    <td mat-cell *matCellDef="let job">
+                        <span class="count-replayed">{{ job.replayedCount }}</span>
+                    </td>
+                </ng-container>
+
+                <!-- Failed Count -->
+                <ng-container matColumnDef="failedCount">
+                    <th mat-header-cell *matHeaderCellDef>Failed</th>
+                    <td mat-cell *matCellDef="let job">
+                        @if (job.failedCount > 0) {
+                            <span class="count-failed">{{ job.failedCount }}</span>
+                        } @else {
+                            <span class="tertiary-color">—</span>
+                        }
+                    </td>
+                </ng-container>
+
+                <!-- Pending Count -->
+                <ng-container matColumnDef="pendingCount">
+                    <th mat-header-cell *matHeaderCellDef>Pending</th>
+                    <td mat-cell *matCellDef="let job">
+                        @if (job.pendingCount > 0) {
+                            <span class="tertiary-color font-medium">{{ job.pendingCount }}</span>
+                        } @else {
+                            <span class="tertiary-color">—</span>
+                        }
+                    </td>
+                </ng-container>
+
+                <!-- Actions -->
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let job">
+                        <button
+                            mat-icon-button
+                            type="button"
+                            title="View Details"
+                            (click)="viewDetailsClicked(job)">
+                            <i class="fa fa-list-alt primary-color"></i>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                <tr
+                    mat-row
+                    *matRowDef="let row; let even = even; columns: displayedColumns"
+                    [class.even]="even"></tr>
+            </table>
+    </div>
+
+    <div class="flex justify-between mt-2">
+        <div class="text-sm flex items-center gap-x-2">
+            <button mat-icon-button class="primary-icon-button" (click)="refreshClicked()">
+                <i class="fa fa-refresh" [class.fa-spin]="loading"></i>
+            </button>
+            <div>Last updated:</div>
+            <div class="tertiary-color font-medium">{{ loadedTimestamp }}</div>
+        </div>
+        <div>
+            <mat-paginator [pageSize]="10" [pageSizeOptions]="[10, 25, 50]" [showFirstLastButtons]="true">
+            </mat-paginator>
+        </div>
+    </div>
+</div>
