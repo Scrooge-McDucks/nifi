@@ -15,30 +15,28 @@
  * limitations under the License.
  */
 
-.bulk-replay-job-table {
-    .listing-table .mat-column-actions {
-        width: 88px;
-
-        button.mat-mdc-icon-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
+.bulk-replay-status-dialog {
+    mat-dialog-content {
+        // override mat-dialog-content's default max-height so the table fills the dialog
+        max-height: unset;
     }
 
-    .listing-table {
-        overflow-x: auto;
+    .dev-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 16px;
+        margin-bottom: 12px;
+        border: 2px dashed #ff9800;
+        border-radius: 4px;
+        background: rgba(255, 152, 0, 0.05);
+        flex-shrink: 0;
 
-        table {
-            table-layout: auto;
-            width: 100%;
-        }
-
-        td,
-        th {
-            white-space: nowrap;
-            overflow: visible;
-            text-overflow: unset;
+        .dev-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #ff9800;
+            margin-right: auto;
         }
     }
 }

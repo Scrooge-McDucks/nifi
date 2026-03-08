@@ -15,26 +15,35 @@
  * limitations under the License.
  */
 
-.dialog-section {
-    margin-bottom: 8px;
-}
+.bulk-replay-detail-dialog {
+    mat-dialog-content {
+        // let the flex chain control height, not mat-dialog-content's default max-height
+        max-height: unset;
+    }
 
-.label-text {
-    min-width: 100px;
-    font-weight: 500;
-    opacity: 0.7;
-}
+    .label-text {
+        font-weight: 500;
+        opacity: 0.7;
+    }
 
-.event-results-table {
-    max-height: 300px;
-    overflow-y: auto;
-}
+    .listing-table {
+        table {
+            table-layout: auto;
+            width: 100%;
+        }
 
-.uuid-cell {
-    display: inline-block;
-    max-width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    vertical-align: bottom;
+        td,
+        th {
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: unset;
+        }
+
+        .mat-column-failureReason {
+            white-space: normal;
+            word-break: break-word;
+            min-width: 200px;
+            max-width: 400px;
+        }
+    }
 }

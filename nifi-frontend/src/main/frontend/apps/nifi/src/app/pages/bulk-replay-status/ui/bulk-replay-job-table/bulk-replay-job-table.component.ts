@@ -27,7 +27,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { debounceTime } from 'rxjs';
+import { RouterLink } from '@angular/router';
+import { debounceTime, interval } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NiFiCommon } from '@nifi/shared';
 import { BulkReplayJobSummary } from '../../state';
@@ -48,6 +49,7 @@ import { BulkReplayJobSummary } from '../../state';
         MatProgressBarModule,
         MatPaginatorModule,
         ReactiveFormsModule,
+        RouterLink,
         DatePipe
     ]
 })
@@ -120,8 +122,14 @@ export class BulkReplayJobTable implements AfterViewInit {
         });
     }
 
+    readonly AUTO_REFRESH_SECONDS = 30;
+
     ngAfterViewInit(): void {
         this.dataSource.paginator = this.paginator;
+
+        interval(this.AUTO_REFRESH_SECONDS * 1000)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.refresh.emit());
 
         this.filterForm
             .get('filterTerm')

@@ -44,6 +44,7 @@ export interface BulkReplayJobSummary {
     replayedCount: number;
     failedCount: number;
     pendingCount: number;
+    groupId: string;
     componentId: string;
     componentName: string;
 }

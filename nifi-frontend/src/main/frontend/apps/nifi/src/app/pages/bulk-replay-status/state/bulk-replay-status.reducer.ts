@@ -90,6 +90,7 @@ function generateFakeJobData(): { summary: BulkReplayJobSummary; detail: BulkRep
     const jobId = randomId();
     const processorName = randomFrom(PROCESSOR_NAMES);
     const componentId = randomId();
+    const groupId = randomId();
     const totalEvents = Math.floor(Math.random() * 80) + 5;
 
     const status: BulkReplayJobStatus = Math.random() < 0.4 ? 'QUEUED' : 'RUNNING';
@@ -147,6 +148,7 @@ function generateFakeJobData(): { summary: BulkReplayJobSummary; detail: BulkRep
         replayedCount: replayed,
         failedCount: failed,
         pendingCount: pending,
+        groupId,
         componentId,
         componentName: processorName
     };

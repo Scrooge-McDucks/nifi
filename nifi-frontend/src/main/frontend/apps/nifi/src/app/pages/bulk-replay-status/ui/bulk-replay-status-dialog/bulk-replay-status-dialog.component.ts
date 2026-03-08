@@ -16,30 +16,41 @@
  */
 
 import { Component, inject } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { Store } from '@ngrx/store';
-import { MatDialog } from '@angular/material/dialog';
+import { Router } from '@angular/router';
 import { take, takeUntil } from 'rxjs';
-import { XL_DIALOG } from '@nifi/shared';
 import {
     clearAllFakeJobs,
     generateFakeJob,
     refreshJobs
-} from '../state/bulk-replay-status.actions';
-import { selectJobDetails, selectJobs, selectLoading, selectLoadedTimestamp } from '../state/bulk-replay-status.selectors';
-import { BulkReplayJobDetailDialog } from '../ui/bulk-replay-job-detail-dialog/bulk-replay-job-detail-dialog.component';
+} from '../../state/bulk-replay-status.actions';
+import {
+    selectJobDetails,
+    selectJobs,
+    selectLoading,
+    selectLoadedTimestamp
+} from '../../state/bulk-replay-status.selectors';
+import { BulkReplayJobTable } from '../bulk-replay-job-table/bulk-replay-job-table.component';
+import { BulkReplayJobDetailDialog } from '../bulk-replay-job-detail-dialog/bulk-replay-job-detail-dialog.component';
+import { XL_DIALOG } from '@nifi/shared';
 
 @Component({
-    selector: 'bulk-replay-status',
-    templateUrl: './bulk-replay-status.component.html',
-    styleUrls: ['./bulk-replay-status.component.scss'],
-    standalone: false
+    selector: 'bulk-replay-status-dialog',
+    templateUrl: './bulk-replay-status-dialog.component.html',
+    styleUrls: ['./bulk-replay-status-dialog.component.scss'],
+    imports: [AsyncPipe, MatDialogModule, MatButtonModule, MatIconModule, BulkReplayJobTable]
 })
-export class BulkReplayStatus {
+export class BulkReplayStatusDialog {
     // TODO: Remove before production merge
     readonly DEV_MODE = true;
 
     private store = inject(Store);
     private dialog = inject(MatDialog);
+    private router = inject(Router);
 
     jobs$ = this.store.select(selectJobs);
     loading$ = this.store.select(selectLoading);
@@ -91,5 +102,10 @@ export class BulkReplayStatus {
                         });
                 }
             });
+    }
+
+    openInNewTab(): void {
+        const url = this.router.serializeUrl(this.router.createUrlTree(['/bulk-replay-status']));
+        window.open(url, '_blank');
     }
 }

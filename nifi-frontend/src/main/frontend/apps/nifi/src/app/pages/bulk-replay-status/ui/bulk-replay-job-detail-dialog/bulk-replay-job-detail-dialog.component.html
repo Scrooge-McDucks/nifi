@@ -15,30 +15,50 @@
   ~ limitations under the License.
   -->
 
-<h2 mat-dialog-title>Bulk Replay Job — {{ jobShortId }}</h2>
+<div class="bulk-replay-detail-dialog flex flex-col" style="height: 80vh;">
+    <!-- Fixed header -->
+    <div class="dialog-header flex items-center justify-between px-4 py-3 flex-shrink-0">
+        <h2 class="primary-color m-0">Job — {{ jobShortId }}</h2>
+        <button mat-icon-button mat-dialog-close title="Close">
+            <i class="fa fa-times primary-color"></i>
+        </button>
+    </div>
 
-<mat-dialog-content>
-    <!-- Summary -->
-    <div class="dialog-section">
-        <div class="flex flex-col gap-y-1">
-            <div class="flex gap-x-4">
-                <span class="label-text">Status:</span>
+    <!-- Fixed summary + criteria -->
+    <div class="summary-section px-4 pb-3 flex-shrink-0">
+        <div class="flex gap-x-8 flex-wrap gap-y-1">
+            <div class="flex gap-x-2 items-center">
+                <span class="label-text">Status</span>
                 <span class="status-badge status-{{ job.status }}">{{ job.status }}</span>
             </div>
-            <div class="flex gap-x-4">
-                <span class="label-text">Component:</span>
-                <span class="tertiary-color font-medium">{{ job.componentName }}</span>
+            <div class="flex gap-x-2 items-center">
+                <span class="label-text">Processor</span>
+                <a
+                    mat-dialog-close
+                    [routerLink]="['/process-groups', job.groupId, 'Processor', job.componentId]"
+                    title="{{ job.componentId }}">
+                    {{ job.componentName }}
+                </a>
             </div>
-            <div class="flex gap-x-4">
-                <span class="label-text">Submitted By:</span>
+            <div class="flex gap-x-2 items-center">
+                <span class="label-text">Processor ID</span>
+                <a
+                    mat-dialog-close
+                    [routerLink]="['/process-groups', job.groupId, 'Processor', job.componentId]"
+                    class="font-mono text-sm">
+                    {{ job.componentId }}
+                </a>
+            </div>
+            <div class="flex gap-x-2 items-center">
+                <span class="label-text">Submitted By</span>
                 <span class="tertiary-color font-medium">{{ job.submittedBy }}</span>
             </div>
-            <div class="flex gap-x-4">
-                <span class="label-text">Submitted:</span>
+            <div class="flex gap-x-2 items-center">
+                <span class="label-text">Submitted</span>
                 <span class="tertiary-color font-medium">{{ job.submittedTime | date: 'medium' }}</span>
             </div>
-            <div class="flex gap-x-4">
-                <span class="label-text">Events:</span>
+            <div class="flex gap-x-2 items-center">
+                <span class="label-text">Events</span>
                 <span>
                     <span class="count-replayed">{{ job.replayedCount }} replayed</span>
                     @if (job.failedCount > 0) {
@@ -51,96 +71,128 @@
                 </span>
             </div>
         </div>
-    </div>
 
-    <!-- Progress (active jobs only) -->
-    @if (job.status === 'RUNNING') {
-        <div class="dialog-section flex flex-col gap-y-1 mt-2">
-            <div class="tertiary-color font-medium">
-                Progress: {{ job.replayedCount + job.failedCount }} of {{ job.totalEvents }} events processed
+        @if (job.status === 'RUNNING') {
+            <div class="flex flex-col gap-y-1 mt-2">
+                <mat-progress-bar mode="determinate" [value]="job.percentCompleted"></mat-progress-bar>
+                <span class="tertiary-color font-medium text-xs">{{ job.percentCompleted }}% complete</span>
             </div>
-            <mat-progress-bar mode="determinate" [value]="job.percentCompleted"></mat-progress-bar>
-            <div class="tertiary-color font-medium">{{ job.percentCompleted }}%</div>
-        </div>
-    } @else if (job.status === 'QUEUED') {
-        <div class="dialog-section flex flex-col gap-y-1 mt-2">
-            <div class="tertiary-color font-medium">Waiting to start...</div>
-            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-        </div>
-    }
+        } @else if (job.status === 'QUEUED') {
+            <div class="flex flex-col gap-y-1 mt-2">
+                <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+                <span class="tertiary-color font-medium text-xs">Waiting to start...</span>
+            </div>
+        }
 
-    <!-- Query Criteria -->
-    <div class="dialog-section mt-4">
-        <h4 class="primary-color mb-2">Query Criteria</h4>
-        <div class="flex flex-col gap-y-1">
-            @if (job.queryCriteria.componentName) {
-                <div class="flex gap-x-4">
-                    <span class="label-text">Component:</span>
-                    <span class="tertiary-color font-medium">{{ job.queryCriteria.componentName }}</span>
-                </div>
-            }
-            @if (job.queryCriteria.startDate) {
-                <div class="flex gap-x-4">
-                    <span class="label-text">From:</span>
-                    <span class="tertiary-color font-medium">{{ job.queryCriteria.startDate | date: 'medium' }}</span>
-                </div>
-            }
-            @if (job.queryCriteria.endDate) {
-                <div class="flex gap-x-4">
-                    <span class="label-text">To:</span>
-                    <span class="tertiary-color font-medium">{{ job.queryCriteria.endDate | date: 'medium' }}</span>
-                </div>
-            }
-            @if (job.queryCriteria.searchTerms) {
-                @for (term of job.queryCriteria.searchTerms | keyvalue; track term.key) {
-                    <div class="flex gap-x-4">
-                        <span class="label-text">{{ term.key }}:</span>
-                        <span class="tertiary-color font-medium">{{ term.value.value }}</span>
+        @if (job.queryCriteria) {
+            <div class="criteria-row flex gap-x-6 flex-wrap gap-y-1 mt-2">
+                @if (job.queryCriteria.componentName) {
+                    <div class="flex gap-x-2">
+                        <span class="label-text">Filter Component</span>
+                        <span class="tertiary-color font-medium">{{ job.queryCriteria.componentName }}</span>
                     </div>
                 }
-            }
-        </div>
+                @if (job.queryCriteria.startDate) {
+                    <div class="flex gap-x-2">
+                        <span class="label-text">From</span>
+                        <span class="tertiary-color font-medium">{{ job.queryCriteria.startDate | date: 'medium' }}</span>
+                    </div>
+                }
+                @if (job.queryCriteria.endDate) {
+                    <div class="flex gap-x-2">
+                        <span class="label-text">To</span>
+                        <span class="tertiary-color font-medium">{{ job.queryCriteria.endDate | date: 'medium' }}</span>
+                    </div>
+                }
+                @if (job.queryCriteria.searchTerms) {
+                    @for (term of job.queryCriteria.searchTerms | keyvalue; track term.key) {
+                        <div class="flex gap-x-2">
+                            <span class="label-text">{{ term.key }}</span>
+                            <span class="tertiary-color font-medium">{{ term.value.value }}</span>
+                        </div>
+                    }
+                }
+            </div>
+        }
     </div>
 
-    <!-- Event Results Table -->
-    <div class="dialog-section mt-4">
-        <h4 class="primary-color mb-2">Event Results</h4>
-        <div class="event-results-table">
-            <table mat-table [dataSource]="eventResultsDataSource">
+    <mat-divider class="flex-shrink-0"></mat-divider>
+
+    <!-- Event results — fills remaining height -->
+    <mat-dialog-content class="flex-1 flex flex-col min-h-0 px-4 pt-3">
+        <div class="flex flex-col flex-shrink-0">
+            <div class="flex items-center gap-x-2 my-2">
+                <form [formGroup]="filterForm" class="flex gap-x-2">
+                    <mat-form-field subscriptSizing="dynamic">
+                        <mat-label>Filter</mat-label>
+                        <input matInput type="text" class="small" formControlName="filterTerm" />
+                    </mat-form-field>
+                    <mat-form-field subscriptSizing="dynamic">
+                        <mat-label>Filter By</mat-label>
+                        <mat-select formControlName="filterColumn">
+                            @for (option of filterColumnOptions; track option) {
+                                <mat-option [value]="option">{{ option }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                </form>
+                <button mat-icon-button class="primary-icon-button" title="Refresh" (click)="refresh.emit()">
+                    <i class="fa fa-refresh"></i>
+                </button>
+            </div>
+            <div class="tertiary-color font-medium mb-2">Filter matched {{ filteredCount }} of {{ totalCount }}</div>
+        </div>
+
+        <div class="flex-1 min-h-0 overflow-auto listing-table">
+            <table
+                mat-table
+                [dataSource]="eventResultsDataSource"
+                matSort
+                matSortDisableClear
+                (matSortChange)="sortData($event)"
+                [matSortActive]="sort.active"
+                [matSortDirection]="sort.direction">
                 <ng-container matColumnDef="eventId">
-                    <th mat-header-cell *matHeaderCellDef>Event ID</th>
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Event ID</th>
                     <td mat-cell *matCellDef="let result">{{ result.eventId }}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="flowFileUuid">
                     <th mat-header-cell *matHeaderCellDef>FlowFile UUID</th>
-                    <td mat-cell *matCellDef="let result">
-                        <span class="uuid-cell" [title]="result.flowFileUuid">{{ result.flowFileUuid }}</span>
-                    </td>
-                </ng-container>
-
-                <ng-container matColumnDef="eventType">
-                    <th mat-header-cell *matHeaderCellDef>Type</th>
-                    <td mat-cell *matCellDef="let result">{{ result.eventType }}</td>
+                    <td mat-cell *matCellDef="let result">{{ result.flowFileUuid }}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="eventTime">
-                    <th mat-header-cell *matHeaderCellDef>Event Time</th>
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Event Time</th>
                     <td mat-cell *matCellDef="let result">{{ result.eventTime | date: 'short' }}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="status">
-                    <th mat-header-cell *matHeaderCellDef>Status</th>
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
                     <td mat-cell *matCellDef="let result">
                         <span class="event-status status-{{ result.status }}">{{ result.status }}</span>
                     </td>
                 </ng-container>
 
                 <ng-container matColumnDef="failureReason">
-                    <th mat-header-cell *matHeaderCellDef>Failure Reason</th>
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Failure Reason</th>
                     <td mat-cell *matCellDef="let result">
                         @if (result.failureReason) {
-                            <span class="count-failed" [title]="result.failureReason">{{ result.failureReason }}</span>
+                            <span class="count-failed">{{ result.failureReason }}</span>
+                        }
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let result">
+                        @if (result.status === 'REPLAYED') {
+                            <button
+                                mat-icon-button
+                                title="Search Provenance for this FlowFile"
+                                (click)="searchProvenance(result.flowFileUuid)">
+                                <i class="icon icon-provenance primary-color"></i>
+                            </button>
                         }
                     </td>
                 </ng-container>
@@ -152,10 +204,7 @@
                     [class.failed-row]="isFailed(row)"></tr>
             </table>
         </div>
-        <mat-paginator [pageSize]="20" [pageSizeOptions]="[20, 50]" [showFirstLastButtons]="true"></mat-paginator>
-    </div>
-</mat-dialog-content>
+        <mat-paginator [pageSize]="20" [hidePageSize]="true" [showFirstLastButtons]="true"></mat-paginator>
+    </mat-dialog-content>
 
-<mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close>Close</button>
-</mat-dialog-actions>
+</div>

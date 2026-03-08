@@ -40,7 +40,7 @@
         <div class="tertiary-color font-medium my-2">Filter matched {{ filteredCount }} of {{ totalCount }}</div>
     </div>
 
-    <div class="flex-1 min-h-0 overflow-y-auto">
+    <div class="flex-1 min-h-0 overflow-auto">
         <div class="listing-table">
             <table
                 mat-table
@@ -143,6 +143,13 @@
                             (click)="viewDetailsClicked(job)">
                             <i class="fa fa-list-alt primary-color"></i>
                         </button>
+                        <button
+                            mat-icon-button
+                            type="button"
+                            title="Go to Processor"
+                            [routerLink]="['/process-groups', job.groupId, 'Processor', job.componentId]">
+                            <i class="fa fa-long-arrow-right primary-color leading-none"></i>
+                        </button>
                     </td>
                 </ng-container>
 
@@ -152,6 +159,7 @@
                     *matRowDef="let row; let even = even; columns: displayedColumns"
                     [class.even]="even"></tr>
             </table>
+        </div>
     </div>
 
     <div class="flex justify-between mt-2">
@@ -161,9 +169,10 @@
             </button>
             <div>Last updated:</div>
             <div class="tertiary-color font-medium">{{ loadedTimestamp }}</div>
+            <div class="tertiary-color">(auto-refreshes every {{ AUTO_REFRESH_SECONDS }}s)</div>
         </div>
         <div>
-            <mat-paginator [pageSize]="10" [pageSizeOptions]="[10, 25, 50]" [showFirstLastButtons]="true">
+            <mat-paginator [pageSize]="25" [hidePageSize]="true" [showFirstLastButtons]="true">
             </mat-paginator>
         </div>
     </div>

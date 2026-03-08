@@ -38,6 +38,7 @@ public class BulkReplayJobSummaryDTO {
     private Integer replayedCount;
     private Integer failedCount;
     private Integer pendingCount;
+    private String groupId;
     private String componentId;
     private String componentName;
 
@@ -148,6 +149,18 @@ public class BulkReplayJobSummaryDTO {
 
     public void setPendingCount(Integer pendingCount) {
         this.pendingCount = pendingCount;
+    }
+
+    /**
+     * @return the id of the process group containing the component
+     */
+    @Schema(description = "The id of the process group containing the component.")
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
     }
 
     /**
